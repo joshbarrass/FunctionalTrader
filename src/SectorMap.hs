@@ -21,8 +21,9 @@ getSector ini n = do
   let d = handleMaybeDir (Map.lookup "Down" sector)
   let l = handleMaybeDir (Map.lookup "Left" sector)
   let r = handleMaybeDir (Map.lookup "Right" sector)
+  let w = handleMaybeDir (Map.lookup "Warp" sector)
 
-  return $ Sector n u d l r 0 (parseBuys sector) (parseSells sector)
+  return $ Sector n u d l r w 0 (parseBuys sector) (parseSells sector)
 
   where handleMaybeDir :: Maybe String -> Maybe Sector
         handleMaybeDir (Just s) = getSector ini (read s)
