@@ -2,6 +2,7 @@ module Trading (
     buyPrice
    ,sellPrice
    ,calculateProfit
+   ,calculateProfitPerTurn
                ) where
 
 -- import Math
@@ -30,3 +31,9 @@ calculateProfit buyFrom sellTo good
     buyFor <- buyPrice buyFrom good
     sellFor <- sellPrice sellTo good
     return $ sellFor - buyFor
+
+calculateProfitPerTurn :: (Fractional a) => Sector -> Sector -> Good -> Maybe a
+calculateProfitPerTurn buyFrom sellTo good = do
+  profit <- calculateProfit buyFrom sellTo good
+  distance <- buyFrom `distanceTo` ((num sellTo ==) . num) 
+  return $ fromIntegral profit / fromIntegral (distance + 2)
