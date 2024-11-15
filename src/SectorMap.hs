@@ -22,12 +22,16 @@ getSector ini n = do
   let l = handleMaybeDir (Map.lookup "Left" sector)
   let r = handleMaybeDir (Map.lookup "Right" sector)
   let w = handleMaybeDir (Map.lookup "Warp" sector)
+  let race = handleMaybeRace (Map.lookup "Port Race" sector)
 
-  return $ Sector n u d l r w 0 (parseBuys sector) (parseSells sector)
+  return $ Sector n u d l r w race (parseBuys sector) (parseSells sector)
 
   where handleMaybeDir :: Maybe String -> Maybe Sector
         handleMaybeDir (Just s) = getSector ini (read s)
         handleMaybeDir Nothing = Just Wall
+        handleMaybeRace :: Maybe String -> Integer
+        handleMaybeRace Nothing = 0
+        handleMaybeRace (Just r) = read r
 
 splitByComma :: String -> [String]
 splitByComma "" = []
