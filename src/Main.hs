@@ -29,16 +29,23 @@ getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs)
 allPairs :: [a] -> [b] -> [(a,b)]
 allPairs xs ys = [(x,y) | x <-xs, y<-ys]
 
-printRouteProfitability :: (Fractional a, Show a) => ((Sector, Sector), a) -> IO ()
-printRouteProfitability (ports, profit) = do
-  let buyFrom = (num . fst) ports
-  let sellTo = (num . snd) ports
-  putStr . show $ buyFrom
+printRouteProfitability :: (Fractional a, Show a) => (((Sector, Sector),(Good, Good)), Maybe a) -> IO ()
+printRouteProfitability (((port1, port2), (good1, good2)), mProfit) = do
+  profit <- exitOnNothing mProfit
+  putStr . show . num $ port1
   putStr " -> "
-  putStr . show $ sellTo
+  putStr . show . num$ port2
   putStr " ("
+  putStr . show $ good1
+  putStr "), "
+  putStr . show . num $ port2
+  putStr " -> "
+  putStr . show . num $ port1
+  putStr " ("
+  putStr . show $ good2
+  putStr "): "
   putStr . show $ profit
-  putStrLn " per good per turn)"
+  putStrLn " per good per turn"
 
 main :: IO ()
 main = do
@@ -55,13 +62,8 @@ main = do
   let profits = map (\((port1, port2), (good1, good2)) -> calculateTwoWayProfitPerTurn port1 port2 good1 good2) allCombos
   let ordered = reverse $ sortBy (comparing (fromJust . snd)) $ filter (isJust . snd) (zip allCombos profits)
   let best = head ordered
-  putStrLn . show . snd $ best
-  putStrLn . show . fst $ best
-  putStrLn . show . fromJust $ calculateTwoWayProfitPerTurn (fromJust $ getSector ini 87) (fromJust $ getSector ini 74) (getGoodByID 8) (getGoodByID 12)
-  -- putStr "Most profitable route for "
-  -- putStr . show $ name theGood
-  -- putStr " is "
-  -- printRouteProfitability best
+  putStr "Most profitable route: "
+  printRouteProfitability best
 
-  -- putStrLn "\nOther options:"
-  -- for_ (tail ordered) printRouteProfitability 
+  putStrLn "\nOther options:"
+  for_ (tail ordered) printRouteProfitability 
