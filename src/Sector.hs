@@ -40,20 +40,21 @@ getAllJust :: [Maybe a] -> [a]
 getAllJust [] = []
 getAllJust [Nothing] = []
 getAllJust [Just x] = [x]
-getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs) 
+getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs)
 
-computeDistanceIndex :: SearchState -> Good -> Maybe Integer
-computeDistanceIndex (SearchState _ [] _) _ = Nothing
-computeDistanceIndex (SearchState visited (sec:toVisit) (dist:distances)) good
-  | isWall sec = computeDistanceIndex (SearchState visited toVisit distances) good
-  | n `elem` visited = computeDistanceIndex (SearchState visited toVisit distances) good
-  | good `elem` (buys sec) = Just dist
+getDistanceTo :: SearchState -> (Sector -> Bool) -> Maybe Integer
+getDistanceTo (SearchState _ [] _) _ = Nothing
+getDistanceTo (SearchState visited (sec:toVisit) (dist:distances)) testFunc
+  | isWall sec = getDistanceTo (SearchState visited toVisit distances) testFunc
+  | n `elem` visited = getDistanceTo (SearchState visited toVisit distances) testFunc
+  | testFunc sec = Just dist
   | otherwise = do
     let adjacent = filter (\s -> num s `notElem` visited) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
     let newDists = [dist + 1 | _ <- adjacent]
-    computeDistanceIndex (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) good
+    getDistanceTo (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) testFunc
   where n = num sec
 
+-- TODO: This should be split into buying and selling
 distanceIndex :: Sector -> Good -> Maybe Integer
-distanceIndex sec = computeDistanceIndex (SearchState [] [sec] [0])
+distanceIndex sec good = getDistanceTo (SearchState [] [sec] [0]) (elem good . buys)
 
