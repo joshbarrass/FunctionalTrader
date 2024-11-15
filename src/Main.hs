@@ -18,8 +18,8 @@ main = do
   (filename:_) <- getArgs
   f <- readFile filename
   ini <- exitOnNothing $ parseIni f
-  sec <- exitOnNothing $ getSector ini 60
+  sec <- exitOnNothing $ getSector ini 71
   print sec
   putStr $ "Distance index for Good " ++ show goodType ++ ": "
-  distanceIndex <- exitOnNothing $ distanceIndex (getGoodByID goodType) sec
+  distanceIndex <- exitOnNothing $ distanceIndex sec (getGoodByID goodType)
   print distanceIndex
