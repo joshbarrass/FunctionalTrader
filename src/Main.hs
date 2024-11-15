@@ -11,14 +11,14 @@ exitOnNothing :: Maybe a -> IO a
 exitOnNothing Nothing = exitFailure
 exitOnNothing (Just x) = return x
 
-goodType = 8
+goodType = 4
 
 main :: IO ()
 main = do
   (filename:_) <- getArgs
   f <- readFile filename
   ini <- exitOnNothing $ parseIni f
-  sec <- exitOnNothing $ getSector ini 71
+  sec <- exitOnNothing $ getSector ini 83
   print sec
   putStr $ "Distance index for Good " ++ show goodType ++ ": "
   distanceIndex <- exitOnNothing $ distanceIndex sec (getGoodByID goodType)
