@@ -4,6 +4,7 @@ module Sector (
 ) where
 
 import Goods
+import Debug.Trace
 
 data Sector = Wall | Sector { num :: Integer
                             , up :: Maybe Sector
@@ -23,7 +24,9 @@ instance Eq Sector where
 
 instance Show Sector where
   show Wall = "Wall"
-  show (Sector n u d l r w race buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", race=" ++ show race ++  ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
+  show (Sector n u d l r w race buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++  ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
+
+data SearchState = SearchState { visited :: [Integer], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
 
 showNumOnly :: Maybe Sector -> String
 showNumOnly Nothing = "Nothing"
@@ -36,18 +39,18 @@ getAllJust [Nothing] = []
 getAllJust [Just x] = [x]
 getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs) 
 
-computeDistanceIndex :: [Integer] -> Good -> Sector -> Maybe Integer
-computeDistanceIndex _ _ Wall = Nothing
-computeDistanceIndex visited good sec
-  | (num sec) `elem` visited = Nothing
-  | good `elem` (buys sec) = Just 0
+computeDistanceIndex :: SearchState -> Good -> Maybe Integer
+computeDistanceIndex (SearchState _ (Wall:_) _) _ = Nothing
+computeDistanceIndex (SearchState visited (sec:toVisit) (dist:distances)) good
+  | n `elem` visited = Nothing
+  | good `elem` (buys sec) = Just dist
   | otherwise = do
-    let adjacent = [up sec, down sec, left sec, right sec, warp sec]
-    let distances = map (computeDistanceIndex ((num sec):visited) good) (getAllJust adjacent)
-    let justDistances = getAllJust distances
-    if (length justDistances) == 0 then Nothing
-    else return $ 1 + (foldr1 min justDistances)
+    let adjacent = getAllJust [up sec, down sec, left sec, right sec, warp sec]
+    let newDists = [dist + 1 | _ <- adjacent]
+    if length adjacent == 0 then Nothing else
+      computeDistanceIndex (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) good
+  where n = num sec
 
-distanceIndex :: Good -> Sector -> Maybe Integer
-distanceIndex = computeDistanceIndex []
+distanceIndex :: Sector -> Good -> Maybe Integer
+distanceIndex sec = computeDistanceIndex (SearchState [] [sec] [0])
 
