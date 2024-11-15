@@ -1,6 +1,6 @@
 module Sector (
     Sector(..)
-   ,getDistanceTo
+   ,distanceTo
    ,buyDistanceIndex
    ,sellDistanceIndex
    ,doesSell
@@ -58,15 +58,18 @@ getDistanceTo (SearchState visited (sec:toVisit) (dist:distances)) testFunc
     getDistanceTo (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) testFunc
   where n = num sec
 
+distanceTo :: Sector -> (Sector -> Bool) -> Maybe Integer
+distanceTo sec = getDistanceTo (SearchState [] [sec] [0])
+
 -- distance index for a sector selling to the player, based on the
 -- distance to the nearest sector which buys the good
 sellDistanceIndex :: Sector -> Good -> Maybe Integer
-sellDistanceIndex sec good = getDistanceTo (SearchState [] [sec] [0]) (elem good . buys)
+sellDistanceIndex sec good = sec `distanceTo` (elem good . buys)
 
 -- distance index for a sector buying from the player, based on the
 -- distance to the nearest sector which sells the good
 buyDistanceIndex :: Sector -> Good -> Maybe Integer
-buyDistanceIndex sec good = getDistanceTo (SearchState [] [sec] [0]) (elem good . sells)
+buyDistanceIndex sec good = sec `distanceTo` (elem good . sells)
 
 doesSell :: Sector -> Good -> Bool
 doesSell sec good = good `elem` sells sec
