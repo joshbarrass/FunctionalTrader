@@ -4,7 +4,6 @@ module Sector (
 ) where
 
 import Goods
-import Debug.Trace
 
 data Sector = Wall | Sector { num :: Integer
                             , up :: Maybe Sector
@@ -26,6 +25,10 @@ instance Show Sector where
   show Wall = "Wall"
   show (Sector n u d l r w race buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++  ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
 
+isWall :: Sector -> Bool
+isWall Wall = True
+isWall _ = False
+
 data SearchState = SearchState { visited :: [Integer], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
 
 showNumOnly :: Maybe Sector -> String
@@ -40,15 +43,15 @@ getAllJust [Just x] = [x]
 getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs) 
 
 computeDistanceIndex :: SearchState -> Good -> Maybe Integer
-computeDistanceIndex (SearchState _ (Wall:_) _) _ = Nothing
+computeDistanceIndex (SearchState _ [] _) _ = Nothing
 computeDistanceIndex (SearchState visited (sec:toVisit) (dist:distances)) good
-  | n `elem` visited = Nothing
+  | isWall sec = computeDistanceIndex (SearchState visited toVisit distances) good
+  | n `elem` visited = computeDistanceIndex (SearchState visited toVisit distances) good
   | good `elem` (buys sec) = Just dist
   | otherwise = do
-    let adjacent = getAllJust [up sec, down sec, left sec, right sec, warp sec]
+    let adjacent = filter (\s -> num s `notElem` visited) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
     let newDists = [dist + 1 | _ <- adjacent]
-    if length adjacent == 0 then Nothing else
-      computeDistanceIndex (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) good
+    computeDistanceIndex (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) good
   where n = num sec
 
 distanceIndex :: Sector -> Good -> Maybe Integer
