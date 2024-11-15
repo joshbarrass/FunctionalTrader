@@ -2,24 +2,35 @@ module Main where
 
 import IniParse
 import SectorMap ( getSector )
-import Sector (distanceIndex)
+import Sector
 import Goods (getGoodByID)
 import System.Exit (exitFailure)
 import System.Environment
+import Data.Foldable (for_)
+import Data.Maybe (isNothing, fromJust)
 
 exitOnNothing :: Maybe a -> IO a
 exitOnNothing Nothing = exitFailure
 exitOnNothing (Just x) = return x
 
-goodType = 4
+goodType = 12
+
+getNarcDistance :: Maybe Sector -> IO ()
+getNarcDistance Nothing = return ()
+getNarcDistance (Just sec) = do
+  if (getGoodByID goodType) `notElem` (sells sec) then return () else do
+    let di = distanceIndex sec (getGoodByID goodType)
+    if isNothing di then return () else do
+      putStr "Sector: "
+      print $ num sec
+      putStr $ "Distance index for Narc: "
+      print $ fromJust di
 
 main :: IO ()
 main = do
   (filename:_) <- getArgs
   f <- readFile filename
   ini <- exitOnNothing $ parseIni f
-  sec <- exitOnNothing $ getSector ini 83
-  print sec
-  putStr $ "Distance index for Good " ++ show goodType ++ ": "
-  distanceIndex <- exitOnNothing $ distanceIndex sec (getGoodByID goodType)
-  print distanceIndex
+  let creontiSecs = map (getSector ini) [50..95]
+  for_ creontiSecs getNarcDistance
+  
