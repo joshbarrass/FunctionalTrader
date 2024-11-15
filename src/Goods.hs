@@ -1,6 +1,7 @@
 module Goods (
-    Good(..),
-    getGoodByID
+     Good(..)
+    ,getGoodByID
+    ,allGoods
 ) where
 
 data Good = Good { id :: Integer
@@ -30,3 +31,6 @@ getGoodByID 9 = Good 9 "Weapons" 168
 getGoodByID 10 = Good 10 "Computers" 196
 getGoodByID 11 = Good 11 "Luxury Items" 231
 getGoodByID 12 = Good 12 "Narcotics" 259
+
+allGoods :: [Good]
+allGoods = map getGoodByID [1..12]
