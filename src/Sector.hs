@@ -16,18 +16,19 @@ data Sector = Wall | Sector { num :: Integer
                             , right :: Maybe Sector
                             , warp :: Maybe Sector
                             , race :: Integer
+                            , level :: Integer
                             , buys :: [Good]
                             , sells :: [Good]
                             }
 instance Eq Sector where
-  (==) (Sector a _ _ _ _ _ _ _ _) (Sector b _ _ _ _ _ _ _ _)
+  (==) (Sector a _ _ _ _ _ _ _ _ _) (Sector b _ _ _ _ _ _ _ _ _)
     | a == b = True
     | otherwise = False
   (==) Wall Wall = True
 
 instance Show Sector where
   show Wall = "Wall"
-  show (Sector n u d l r w race buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++  ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
+  show (Sector n u d l r w race level buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++ ", level=" ++ show level ++ ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
 
 isWall :: Sector -> Bool
 isWall Wall = True
@@ -38,7 +39,7 @@ data SearchState = SearchState { visited :: [Integer], toVisit :: [Sector], dist
 showNumOnly :: Maybe Sector -> String
 showNumOnly Nothing = "Nothing"
 showNumOnly (Just Wall) = "Wall"
-showNumOnly (Just (Sector n _ _ _ _ _ _ _ _)) = show n
+showNumOnly (Just (Sector n _ _ _ _ _ _ _ _ _)) = show n
 
 getAllJust :: [Maybe a] -> [a]
 getAllJust [] = []

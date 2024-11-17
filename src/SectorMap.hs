@@ -7,6 +7,7 @@ import IniParse
 import qualified Data.Map as Map
 -- import Data.Text (isInfixOf)
 import Data.List (isInfixOf)
+import Data.Maybe
 import Sector ( Sector(Sector, Wall) )
 import Goods
 
@@ -23,15 +24,17 @@ getSector ini n = do
   let r = handleMaybeDir (Map.lookup "Right" sector)
   let w = handleMaybeDir (Map.lookup "Warp" sector)
   let race = handleMaybeRace (Map.lookup "Port Race" sector)
+  let portLvl = handleMaybePort (Map.lookup "Port Level" sector)
 
-  return $ Sector n u d l r w race (parseBuys sector) (parseSells sector)
+  return $ Sector n u d l r w race portLvl (parseBuys sector) (parseSells sector)
 
   where handleMaybeDir :: Maybe String -> Maybe Sector
         handleMaybeDir (Just s) = getSector ini (read s)
         handleMaybeDir Nothing = Just Wall
         handleMaybeRace :: Maybe String -> Integer
-        handleMaybeRace Nothing = 0
-        handleMaybeRace (Just r) = read r
+        handleMaybeRace = read . fromMaybe "0"
+        handleMaybePort :: Maybe String -> Integer
+        handleMaybePort = read . fromMaybe "0"
 
 splitByComma :: String -> [String]
 splitByComma "" = []

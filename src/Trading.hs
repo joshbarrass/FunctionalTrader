@@ -9,7 +9,7 @@ module Trading (
 
 -- import Math
 import Sector
-import Goods ( Good(price) )
+import Goods ( Good(price, illegal) )
 import Data.Maybe
 import qualified Data.Map as Map
 
@@ -71,3 +71,13 @@ calculateTwoWayProfitPerTurn rels port1 port2 sellAt2 sellAt1 = do
   profit <- calculateTwoWayProfit rels port1 port2 sellAt2 sellAt1
   distance <- port1 `distanceTo` ((num port2 ==) . num)
   return $ fromIntegral profit / fromIntegral (2*distance + 4)
+
+-- per good
+calculateFine :: Good -> Sector -> Integer
+calculateFine good sector = price good * level sector
+
+calculateInspectionChance :: Sector -> Double
+calculateInspectionChance sector = baseChance - reductionPerIllegal * numIllegal
+  where numIllegal = fromIntegral $ length (filter illegal (sells sector)) + length (filter illegal (buys sector))
+        baseChance = 0.15
+        reductionPerIllegal = 0.04
