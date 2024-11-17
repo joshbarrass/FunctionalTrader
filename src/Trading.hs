@@ -27,8 +27,10 @@ getRelFactor rel = if factor > 1 then 1 else factor
 -- from them
 buyPrice :: Relations -> Sector -> Good -> Maybe Integer
 buyPrice rels sec good = do
-  distanceIndex <- sellDistanceIndex sec good
-  return $ ceiling $ 0.03 * (fromIntegral $ price good) * ((fromIntegral distanceIndex)**1.3) * (2 - 1) * (3 - 2*relFactor)
+  -- ports won't trade with us if our rel is -300 or less
+  if rel <= (-300) then Nothing else do
+    distanceIndex <- sellDistanceIndex sec good
+    return $ ceiling $ 0.03 * (fromIntegral $ price good) * ((fromIntegral distanceIndex)**1.3) * (2 - 1) * (3 - 2*relFactor)
   where rel = getRelation rels (race sec)
         relFactor = getRelFactor rel
 
@@ -36,8 +38,10 @@ buyPrice rels sec good = do
 -- good to them
 sellPrice :: Relations -> Sector -> Good -> Maybe Integer
 sellPrice rels sec good = do
-  distanceIndex <- buyDistanceIndex sec good
-  return $ floor $ 0.088 * (fromIntegral $ price good) * ((fromIntegral distanceIndex)**1.3) * (1 + 1) * (1.2 + 1.8*relFactor)
+  -- ports won't trade with us if our rel is -300 or less
+  if rel <= (-300) then Nothing else do
+    distanceIndex <- buyDistanceIndex sec good
+    return $ floor $ 0.088 * (fromIntegral $ price good) * ((fromIntegral distanceIndex)**1.3) * (1 + 1) * (1.2 + 1.8*relFactor)
   where rel = getRelation rels (race sec)
         relFactor = getRelFactor rel
 
