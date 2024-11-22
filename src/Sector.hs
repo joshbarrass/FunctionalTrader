@@ -66,7 +66,7 @@ getDistanceTo testFunc = do
 
   -- add adjacent sectors to the search and move on
   else do
-    let adjacent = filter (`notElem` vis) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
+    let adjacent = filter (`notElem` vis) $ filter (not . isWall) $ getAllJust (map ($ sec) [up, down, left, right, warp])
     let newDists = [dist + 1 | _ <- adjacent]
     put $ Search (sec:vis) (toVis ++ adjacent) (dists ++ newDists)
     getDistanceTo testFunc
