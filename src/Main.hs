@@ -11,6 +11,7 @@ import Data.Foldable (for_)
 import Data.Maybe (isNothing, isJust, fromJust)
 import Data.Ord
 import Data.List
+import Data.Map (fromList) 
 
 exitOnNothing :: Maybe a -> IO a
 exitOnNothing Nothing = exitFailure
@@ -47,6 +48,8 @@ printRouteProfitability (((port1, port2), (good1, good2)), mProfit) = do
   putStr . show $ profit
   putStrLn " per good per turn"
 
+rels = fromList []
+
 main :: IO ()
 main = do
   (filename:_) <- getArgs
@@ -59,7 +62,7 @@ main = do
   let goodPairs = allPairs allGoods allGoods
   let allCombos = allPairs portPairs goodPairs
   
-  let profits = map (\((port1, port2), (good1, good2)) -> calculateTwoWayProfitPerTurn port1 port2 good1 good2) allCombos
+  let profits = map (\((port1, port2), (good1, good2)) -> calculateTwoWayProfitPerTurn rels port1 port2 good1 good2) allCombos
   let ordered = reverse $ sortBy (comparing (fromJust . snd)) $ filter (isJust . snd) (zip allCombos profits)
   let best = head ordered
   putStr "Most profitable route: "
