@@ -35,7 +35,7 @@ isWall :: Sector -> Bool
 isWall Wall = True
 isWall _ = False
 
-data Search = Search { visited :: [Integer], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
+data Search = Search { visited :: [Sector], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
 type SearchState = State Search
 
 showNumOnly :: Maybe Sector -> String
@@ -56,20 +56,19 @@ getDistanceTo testFunc = do
   let vis = visited search
   let sec:toVis = toVisit search
   let dist:dists = distances search
-  let n = num sec
   put (Search vis toVis dists)
 
   -- test default cases
   --  if it's a wall or we've already been here, move on immediately
   --  if it satisfies the test, return the distance
-  if isWall sec || (n `elem` vis) then getDistanceTo testFunc
+  if isWall sec || (sec `elem` vis) then getDistanceTo testFunc
   else if testFunc sec then return $ Just dist
 
   -- add adjacent sectors to the search and move on
   else do
-    let adjacent = filter (\s -> num s `notElem` vis) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
+    let adjacent = filter (`notElem` vis) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
     let newDists = [dist + 1 | _ <- adjacent]
-    put $ Search (n:vis) (toVis ++ adjacent) (dists ++ newDists)
+    put $ Search (sec:vis) (toVis ++ adjacent) (dists ++ newDists)
     getDistanceTo testFunc
 
 newSearchState :: Sector -> Search
