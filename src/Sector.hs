@@ -8,6 +8,7 @@ module Sector (
 ) where
 
 import Goods
+import Control.Monad.State
 
 data Sector = Wall | Sector { num :: Integer
                             , up :: Maybe Sector
@@ -34,7 +35,8 @@ isWall :: Sector -> Bool
 isWall Wall = True
 isWall _ = False
 
-data SearchState = SearchState { visited :: [Integer], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
+data Search = Search { visited :: [Integer], toVisit :: [Sector], distances :: [Integer]} deriving (Show)
+type SearchState = State Search
 
 showNumOnly :: Maybe Sector -> String
 showNumOnly Nothing = "Nothing"
@@ -47,20 +49,34 @@ getAllJust [Nothing] = []
 getAllJust [Just x] = [x]
 getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs)
 
-getDistanceTo :: SearchState -> (Sector -> Bool) -> Maybe Integer
-getDistanceTo (SearchState _ [] _) _ = Nothing
-getDistanceTo (SearchState visited (sec:toVisit) (dist:distances)) testFunc
-  | isWall sec = getDistanceTo (SearchState visited toVisit distances) testFunc
-  | n `elem` visited = getDistanceTo (SearchState visited toVisit distances) testFunc
-  | testFunc sec = Just dist
-  | otherwise = do
-    let adjacent = filter (\s -> num s `notElem` visited) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
+getDistanceTo :: (Sector -> Bool) -> SearchState (Maybe Integer)
+getDistanceTo testFunc = do
+  -- unpack the state and remove the current sector
+  search <- get
+  let vis = visited search
+  let sec:toVis = toVisit search
+  let dist:dists = distances search
+  let n = num sec
+  put (Search vis toVis dists)
+
+  -- test default cases
+  --  if it's a wall or we've already been here, move on immediately
+  --  if it satisfies the test, return the distance
+  if isWall sec || (n `elem` vis) then getDistanceTo testFunc
+  else if testFunc sec then return $ Just dist
+
+  -- add adjacent sectors to the search and move on
+  else do
+    let adjacent = filter (\s -> num s `notElem` vis) $ filter (not . isWall) $ getAllJust [up sec, down sec, left sec, right sec, warp sec]
     let newDists = [dist + 1 | _ <- adjacent]
-    getDistanceTo (SearchState (n:visited) (toVisit ++ adjacent) (distances ++ newDists)) testFunc
-  where n = num sec
+    put $ Search (n:vis) (toVis ++ adjacent) (dists ++ newDists)
+    getDistanceTo testFunc
+
+newSearchState :: Sector -> Search
+newSearchState start = Search [] [start] [0]
 
 distanceTo :: Sector -> (Sector -> Bool) -> Maybe Integer
-distanceTo sec = getDistanceTo (SearchState [] [sec] [0])
+distanceTo sec testFunc = evalState (getDistanceTo testFunc) (newSearchState sec)
 
 -- distance index for a sector selling to the player, based on the
 -- distance to the nearest sector which buys the good
