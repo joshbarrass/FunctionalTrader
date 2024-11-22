@@ -52,10 +52,9 @@ getAllJust (x:xs) = (getAllJust [x]) ++ (getAllJust xs)
 getDistanceTo :: (Sector -> Bool) -> SearchState (Maybe Integer)
 getDistanceTo testFunc = do
   -- unpack the state and remove the current sector
-  search <- get
-  let vis = visited search
-  let sec:toVis = toVisit search
-  let dist:dists = distances search
+  Search vis toVisit distances <- get
+  let (sec:toVis) = toVisit
+  let (dist:dists) = distances
   put (Search vis toVis dists)
 
   -- test default cases
