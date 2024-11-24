@@ -73,3 +73,23 @@ spec = do
       it "returns the distance" $ do
         distanceTo sec1 (== sec2) `shouldBe` Just distance
         
+    context "when searching via a warp" $ do
+      context "when the warp is slower" $ do
+        let distance = 3
+        let secs = [Sector 0 (Just $ secs !! 1) (Just Wall) (Just Wall) (Just Wall) (Just $ secs !! fromInteger distance) 0 0 [] []]
+                   ++ [Sector (toInteger i) (Just $ secs !! (i+1)) (Just $ secs !! (i-1)) (Just Wall) (Just Wall) (Just Wall) 0 0 [] [] | i <- [1..(fromInteger distance - 1)] :: [Int]]
+                   ++ [Sector distance (Just Wall) (Just $ secs !! (fromInteger distance - 1)) (Just Wall) (Just Wall) (Just $ head secs) 0 0 [] []]
+        let sec1 = secs !! 0
+        let sec2 = secs !! fromInteger distance
+        it "returns the non-warp distance" $ do
+          distanceTo sec1 (== sec2) `shouldBe` Just distance
+
+      context "when the warp is faster" $ do
+        let distance = 20
+        let secs = [Sector 0 (Just $ secs !! 1) (Just Wall) (Just Wall) (Just Wall) (Just $ secs !! fromInteger distance) 0 0 [] []]
+                   ++ [Sector (toInteger i) (Just $ secs !! (i+1)) (Just $ secs !! (i-1)) (Just Wall) (Just Wall) (Just Wall) 0 0 [] [] | i <- [1..(fromInteger distance - 1)] :: [Int]]
+                   ++ [Sector distance (Just Wall) (Just $ secs !! (fromInteger distance - 1)) (Just Wall) (Just Wall) (Just $ head secs) 0 0 [] []]
+        let sec1 = secs !! 0
+        let sec2 = secs !! fromInteger distance
+        it "returns the warp distance" $ do
+          distanceTo sec1 (== sec2) `shouldBe` Just 5
