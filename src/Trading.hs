@@ -5,6 +5,7 @@ module Trading (
    ,calculateProfitPerTurn
    ,calculateTwoWayProfit
    ,calculateTwoWayProfitPerTurn
+   ,fineChance
                ) where
 
 -- import Math
