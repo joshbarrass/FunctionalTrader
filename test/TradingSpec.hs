@@ -36,3 +36,13 @@ spec = do
         let sector = Sector 1 Nothing Nothing Nothing Nothing Nothing 0 0 (take 3 illegalGoods) []
         it "is base chance − 12%" $ do
           (fineChance good sector :: Double) `shouldBe` (0.15 - 3*0.04)
+
+  describe "getRelFactor" $ do
+    context "when relationship is greater than 1000" $ do
+      let range = [1000..2000]
+      it "returns 1" $ do
+        map getRelFactor range `shouldBe` [1.0 | _ <- range]
+    context "when relationship is less than 1000" $ do
+      let range = [0..1000]
+      it "returns relationship / 1000" $ do
+        map getRelFactor range `shouldBe` [fromIntegral i/1000 | i <- range]
