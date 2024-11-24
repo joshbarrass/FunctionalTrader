@@ -8,6 +8,9 @@ module Sector (
 ) where
 
 import Goods
+import Data.List (insertBy)
+import Data.Maybe (isJust, fromJust)
+import Data.Bifunctor (first)
 import Control.Monad.State
 
 data Sector = Wall | Sector { num :: Integer
@@ -65,10 +68,16 @@ getDistanceTo testFunc = do
 
     -- add adjacent sectors to the search and move on
     else do
-      let adjacent = filter (`notElem` vis) $ filter (not . isWall) $ getAllJust (map ($ sec) [up, down, left, right, warp])
-      let newDists = [dist + 1 | _ <- adjacent]
-      put $ Search (sec:vis) (toVis ++ zip adjacent newDists)
+      let adjacent = map ($ sec) [up, down, left, right, warp]
+      let secDistPairs = zip adjacent ([dist + 1 | _ <- tail adjacent] ++ [dist + 5])
+      let validPairs = filter ((`notElem` vis) . fst ) $
+                       filter (not . isWall . fst) $
+                       map (first fromJust) $
+                       filter (isJust . fst) secDistPairs
+      put $ Search (sec:vis) $ insertAllBy distCmp validPairs toVis
       getDistanceTo testFunc
+  where distCmp :: ((Sector, Integer) -> (Sector, Integer) -> Ordering)
+        distCmp (_, d1) (_, d2) = compare d1 d2
 
 newSearchState :: Sector -> Search
 newSearchState start = Search [] [(start, 0)]
@@ -91,3 +100,8 @@ doesSell sec good = good `elem` sells sec
 
 doesBuy :: Sector -> Good -> Bool
 doesBuy sec good = good `elem` buys sec
+
+insertAllBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+insertAllBy _ [] ys = ys
+insertAllBy f [x] ys = insertBy f x ys
+insertAllBy f (x:xs) ys = insertAllBy f xs $ insertBy f x ys
