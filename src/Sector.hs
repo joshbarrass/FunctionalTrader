@@ -3,6 +3,8 @@ module Sector (
    ,distanceTo
    ,buyDistanceIndex
    ,sellDistanceIndex
+   ,calcBuyDistanceIndex
+   ,calcSellDistanceIndex
    ,doesSell
    ,doesBuy
 ) where
@@ -23,16 +25,18 @@ data Sector = Wall | Sector { num :: Integer
                             , level :: Integer
                             , buys :: [Good]
                             , sells :: [Good]
+                            , buyIndex :: [Maybe Integer]
+                            , sellIndex :: [Maybe Integer]
                             }
 instance Eq Sector where
-  (==) (Sector a _ _ _ _ _ _ _ _ _) (Sector b _ _ _ _ _ _ _ _ _)
+  (==) (Sector a _ _ _ _ _ _ _ _ _ _ _) (Sector b _ _ _ _ _ _ _ _ _ _ _)
     | a == b = True
     | otherwise = False
   (==) Wall Wall = True
 
 instance Show Sector where
   show Wall = "Wall"
-  show (Sector n u d l r w race level buys sells) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++ ", level=" ++ show level ++ ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
+  show (Sector n u d l r w race level buys sells _ _) = "Sector(num=" ++ show n ++ ", up=" ++ showNumOnly u ++ ", down=" ++ showNumOnly d ++ ", left=" ++ showNumOnly l ++ ", right=" ++ showNumOnly r ++ ", warp=" ++ showNumOnly w ++ ", race=" ++ show race ++ ", level=" ++ show level ++ ", buys=" ++ show buys ++ ", sells=" ++ show sells ++ ")"
 
 isWall :: Sector -> Bool
 isWall Wall = True
@@ -44,7 +48,7 @@ type SearchState = State Search
 showNumOnly :: Maybe Sector -> String
 showNumOnly Nothing = "Nothing"
 showNumOnly (Just Wall) = "Wall"
-showNumOnly (Just (Sector n _ _ _ _ _ _ _ _ _)) = show n
+showNumOnly (Just (Sector n _ _ _ _ _ _ _ _ _ _ _)) = show n
 
 getAllJust :: [Maybe a] -> [a]
 getAllJust [] = []
@@ -87,13 +91,18 @@ distanceTo sec testFunc = evalState (getDistanceTo testFunc) (newSearchState sec
 
 -- distance index for a sector selling to the player, based on the
 -- distance to the nearest sector which buys the good
-sellDistanceIndex :: Sector -> Good -> Maybe Integer
-sellDistanceIndex sec good = sec `distanceTo` (elem good . buys)
+calcSellDistanceIndex :: Sector -> Good -> Maybe Integer
+calcSellDistanceIndex sec good = sec `distanceTo` (elem good . buys)
 
 -- distance index for a sector buying from the player, based on the
 -- distance to the nearest sector which sells the good
+calcBuyDistanceIndex :: Sector -> Good -> Maybe Integer
+calcBuyDistanceIndex sec good = sec `distanceTo` (elem good . sells)
+
 buyDistanceIndex :: Sector -> Good -> Maybe Integer
-buyDistanceIndex sec good = sec `distanceTo` (elem good . sells)
+buyDistanceIndex sec good = buyIndex sec !! fromIntegral (Goods.id good - 1)
+sellDistanceIndex :: Sector -> Good -> Maybe Integer
+sellDistanceIndex sec good = sellIndex sec !! fromIntegral (Goods.id good - 1)
 
 doesSell :: Sector -> Good -> Bool
 doesSell sec good = good `elem` sells sec

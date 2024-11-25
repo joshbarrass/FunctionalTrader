@@ -10,7 +10,7 @@ import qualified Data.Map as Map
 -- import Data.Text (isInfixOf)
 import Data.List (isInfixOf)
 import Data.Maybe
-import Sector ( Sector(Sector, Wall) )
+import Sector ( Sector(Sector, Wall), calcBuyDistanceIndex, calcSellDistanceIndex )
 import Goods
 
 type Sectors = [Maybe Sector]
@@ -43,7 +43,7 @@ getSectorFromIni m ini n = do
   let race = handleMaybeRace (Map.lookup "Port Race" sector)
   let portLvl = handleMaybePort (Map.lookup "Port Level" sector)
 
-  return $ Sector n u d l r w race portLvl (parseBuys sector) (parseSells sector)
+  return $ Sector n u d l r w race portLvl (parseBuys sector) (parseSells sector) [calcBuyDistanceIndex (fromJust $ getSector m n) (getGoodByID i) | i <- [1..12]] [calcSellDistanceIndex (fromJust $ getSector m n) (getGoodByID i) | i <- [1..12]]
 
   where handleMaybeDir :: Maybe String -> Maybe Sector
         handleMaybeDir (Just s) = getSector m (read s)
