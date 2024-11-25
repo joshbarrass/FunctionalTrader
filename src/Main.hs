@@ -1,7 +1,7 @@
 module Main where
 
 import IniParse
-import SectorMap ( getSector )
+import SectorMap ( getSectorMap, getSector )
 import Sector
 import Goods
 import Trading
@@ -55,7 +55,8 @@ main = do
   (filename:_) <- getArgs
   f <- readFile filename
   ini <- exitOnNothing $ parseIni f
-  let creontiSecs = getAllJust $ map (getSector ini) [50..95]
+  let sectorMap = getSectorMap ini
+  let creontiSecs = getAllJust $ map (getSector sectorMap) [50..95]
   let goodSellers = filter (`doesSell` theGood) creontiSecs
   let goodBuyers = filter (`doesBuy` theGood) creontiSecs
   let portPairs = filter (\(port1, port2) -> (num port1) < (num port2)) $ allPairs goodSellers goodBuyers
